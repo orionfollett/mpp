@@ -1,6 +1,6 @@
 const rl = @import("raylib");
 const std = @import("std");
-const Player = struct { x: i32, y: i32, w: i32, h: i32, speed: i32, vx: i32, vy: i32, color: rl.Color };
+const Card = struct { rect: rl.Rectangle, color: rl.Color };
 
 pub fn main() anyerror!void {
     const screenWidth = 800;
@@ -11,32 +11,29 @@ pub fn main() anyerror!void {
 
     rl.setTargetFPS(60);
 
-    var p1: Player = .{ .x = 0, .y = 0, .w = 40, .h = 40, .vx = 0, .vy = 0, .color = rl.Color.red, .speed = 250 };
+    var c: Card = .{ .rect = .{ .x = 0, .y = 0, .width = 40, .height = 40 }, .color = rl.Color.red };
+
     while (!rl.windowShouldClose()) {
         if (rl.isKeyDown(rl.KeyboardKey.w)) {
-            p1.vy = -1 * p1.speed;
-        } else if (rl.isKeyDown(rl.KeyboardKey.s)) {
-            p1.vy = p1.speed;
-        } else {
-            p1.vy = 0;
+            std.debug.print("W\n", .{});
         }
-        if (rl.isKeyDown(rl.KeyboardKey.a)) {
-            p1.vx = -1 * p1.speed;
-        } else if (rl.isKeyDown(rl.KeyboardKey.d)) {
-            p1.vx = p1.speed;
-        } else {
-            p1.vx = 0;
-        }
-
-        p1.x = @intFromFloat(@as(f32, @floatFromInt(p1.vx)) * rl.getFrameTime() + @as(f32, @floatFromInt(p1.x)));
-        p1.y = @intFromFloat(@as(f32, @floatFromInt(p1.vy)) * rl.getFrameTime() + @as(f32, @floatFromInt(p1.y)));
-
+        HandleMouse(&c);
         rl.beginDrawing();
         defer rl.endDrawing();
 
         rl.clearBackground(.white);
 
-        rl.drawRectangle(p1.x, p1.y, p1.w, p1.h, p1.color);
+        rl.drawRectangleRec(c.rect, c.color);
         rl.drawText("Congrats! You created your first window!", 190, 200, 20, .light_gray);
+    }
+}
+
+pub fn HandleMouse(c: *Card) void {
+    if (rl.isMouseButtonDown(rl.MouseButton.left)) {
+        const v = rl.getMousePosition();
+        if (rl.checkCollisionPointRec(v, c.rect)) {
+            c.rect.x = v.x;
+            c.rect.y = v.y;
+        }
     }
 }
